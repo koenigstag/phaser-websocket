@@ -1,4 +1,5 @@
 const socketio = require("socket.io");
+const playerEvents = require("./controllers/player");
 const userEvents = require("./controllers/user");
 
 class Socket {
@@ -65,7 +66,7 @@ class Socket {
 }
 
 function startSocket(httpServer) {
-  const io = new Socket(userEvents);
+  const io = new Socket(userEvents, playerEvents);
 
   io.listen(httpServer);
 
