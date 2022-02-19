@@ -3,7 +3,7 @@ const http = require("http");
 const { app } = require("./src/express");
 const { startSocket } = require("./src/socket");
 
-const SERVER_PORT = 5000;
+const SERVER_PORT = process.env.PORT || 5000;
 
 function startServer() {
   // create http server and wrap the express app
