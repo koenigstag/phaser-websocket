@@ -5,7 +5,7 @@ function startSocket(httpServer) {
   // bind socket.io to that server
   const io = socketio(httpServer, {
     cors: {
-      origin: "*",
+      origin: ["http://localhost:3000", "https://web-dwarfs-ac7b51.netlify.app/"],
     },
   });
 
