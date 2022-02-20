@@ -5,7 +5,7 @@ const userEvents = require("./controllers/user");
 class Socket {
   callbacks = [];
   io = null;
-  onlineClients = new Set();
+  onlineClients = { current: new Set() };
 
   constructor(...callbacks) {
     this.callbacks = callbacks;
@@ -31,12 +31,6 @@ class Socket {
     this.io.on("connection", (socket) => {
       console.info(`Socket id ${socket.id} has connected.`);
 
-      // will send a message only to this socket (different than using `io.emit()`, which would broadcast it)
-      socket.emit(
-        "welcome",
-        `Welcome! You are visitor number ${this.onlineClients.size + 1}`
-      );
-
       // echoes on the terminal every "hello" message this socket sends
       socket.on("ping", () => {
         console.info(`Socket ${socket.id} says: "ping"`);
@@ -60,7 +54,7 @@ class Socket {
     let secondsSinceServerStarted = 0;
     setInterval(() => {
       this.io.emit("seconds", ++secondsSinceServerStarted);
-      this.io.emit("online", this.onlineClients.size);
+      this.io.emit("online", this.onlineClients.current.size);
     }, 1000);
   }
 }

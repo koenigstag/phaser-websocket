@@ -1,30 +1,45 @@
 const Users = require("../../db/models/user");
 
 function userEvents({ socket, onlineClients }) {
-  socket.on("disconnect", ({ id }) => {
-    onlineClients.delete(id);
+  socket.on("disconnect", (reason) => {
+    onlineClients.current.delete(socket.handshake.query.UUID);
     console.info(`Socket ${socket.id} has disconnected.`);
   });
 
-  socket.on("login", async ({ nickname, password }) => {
-    const foundUser = await Users.findOne({ nickname });
+  socket.on("login", async ({ username, password }) => {
+    if (!username || !password ) {
+      socket.emit("auth-error", "Invalid credentials");
+    }
+
+    const foundUser = await Users.findOne({ username });
 
     if (!foundUser) {
+      console.log(foundUser);
       socket.emit("auth-error", "Invalid credentials");
       return;
     }
 
     if (foundUser.password !== password) {
-      console.log('Invalid credentials');
       socket.emit("auth-error", "Invalid credentials");
       return;
     }
 
-    onlineClients.add(foundUser._id);
+    onlineClients.current.add(foundUser._id.toString()); 
+
+    // will send a message only to this socket (different than using `io.emit()`, which would broadcast it)
+    socket.emit(
+      "welcome",
+      `Welcome! You are visitor number ${onlineClients.current.size + 1}`
+    );
+
     socket.emit("loginSuccess", foundUser);
   });
 
   socket.on("register", async ({ nickname, password }) => {
+    if (!username || !password ) {
+      socket.emit("auth-error", "Invalid credentials");
+    }
+
     const foundUser = await Users.findOne({ nickname });
 
     if (foundUser) {
@@ -33,7 +48,7 @@ function userEvents({ socket, onlineClients }) {
 
     const createdUser = await Users.create({ nickname, password });
 
-    onlineClients.add(createdUser._id);
+    onlineClients.current.add(createdUser._id.toString());
     socket.emit("registerSuccess", createdUser);
   });
 }
